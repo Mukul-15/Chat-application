@@ -42,7 +42,7 @@ export default function ChatRoom(){
     
     setLoading(true);
     try {
-      await sendMessage(chatId, user.uid, text);
+      await sendMessage(chatId, user.id, text);
       setText('');
     } catch (err) {
       console.error('Error sending message:', err);
@@ -79,18 +79,18 @@ export default function ChatRoom(){
           messages.map((m: any) => (
             <div 
               key={m.id} 
-              className={`mb-3 flex ${m.senderId === user.uid ? 'justify-end' : 'justify-start'}`}
+              className={`mb-3 flex ${m.senderId === user.id ? 'justify-end' : 'justify-start'}`}
             >
               <div 
                 className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                  m.senderId === user.uid 
+                  m.senderId === user.id 
                     ? 'bg-blue-500 text-white' 
                     : 'bg-white border'
                 }`}
               >
                 <div className="text-sm">{m.text}</div>
                 <div className={`text-xs mt-1 ${
-                  m.senderId === user.uid ? 'text-blue-100' : 'text-gray-500'
+                  m.senderId === user.id ? 'text-blue-100' : 'text-gray-500'
                 }`}>
                   {m.timestamp?.toDate ? 
                     m.timestamp.toDate().toLocaleString() : 

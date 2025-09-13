@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChange, signInUser, registerUser, signOutUser } from '../firebase/auth';
+import { signInUser, registerUser, signOutUser, getCurrentUser } from '../firebase/auth';
 
 interface User {
   id: string;
-  uid: string;
   name: string;
   email: string;
   userCode: string;
   photoURL?: string;
+  createdAt?: any;
+  lastSeen?: any;
 }
 
 interface AuthContextType {
@@ -25,28 +26,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChange((userData) => {
-      if (userData) {
-        setUser({
-          id: userData.userData?.id || userData.user.uid,
-          uid: userData.user.uid,
-          name: userData.userData?.name || userData.user.displayName || '',
-          email: userData.user.email || '',
-          userCode: userData.userData?.userCode || '',
-          photoURL: userData.userData?.photoURL || userData.user.photoURL
-        });
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    // Check if user is already logged in
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+    }
+    setLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      await signInUser(email, password);
+      const userData = await signInUser(email, password);
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -55,7 +47,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (name: string, email: string, password: string) => {
     try {
-      await registerUser(email, password, name);
+      const userData = await registerUser(email, password, name);
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
@@ -65,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await signOutUser();
+      setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
       throw error;

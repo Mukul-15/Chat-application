@@ -23,20 +23,6 @@ const MESSAGES_COLLECTION = 'messages';
 const REQUESTS_COLLECTION = 'chatRequests';
 
 // User operations
-export const createUser = async (userData) => {
-  try {
-    const docRef = await addDoc(collection(db, USERS_COLLECTION), {
-      ...userData,
-      createdAt: serverTimestamp(),
-      lastSeen: serverTimestamp()
-    });
-    return docRef.id;
-  } catch (error) {
-    console.error('Error creating user:', error);
-    throw error;
-  }
-};
-
 export const getUser = async (userId) => {
   try {
     const docRef = doc(db, USERS_COLLECTION, userId);

@@ -19,7 +19,7 @@ export default function Dashboard(){
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user?.uid) {
+    if (user?.id) {
       fetchRequests();
       fetchChats();
     }
@@ -27,7 +27,7 @@ export default function Dashboard(){
 
   const fetchRequests = async () => {
     try {
-      const reqs = await getChatRequests(user.uid);
+      const reqs = await getChatRequests(user.id);
       setRequests(reqs);
     } catch (err) {
       console.error('Error fetching requests:', err);
@@ -36,7 +36,7 @@ export default function Dashboard(){
 
   const fetchChats = async () => {
     try {
-      const userChats = await getUserChats(user.uid);
+      const userChats = await getUserChats(user.id);
       setChats(userChats);
     } catch (err) {
       console.error('Error fetching chats:', err);
@@ -48,7 +48,7 @@ export default function Dashboard(){
     setLoading(true);
     try {
       const searchResults = await searchUsers(search);
-      setResults(searchResults.filter(r => r.uid !== user.uid));
+      setResults(searchResults.filter(r => r.id !== user.id));
     } catch (err) {
       console.error('Error searching users:', err);
     } finally {
@@ -58,7 +58,7 @@ export default function Dashboard(){
 
   const sendRequest = async (toUserId: string) => {
     try {
-      await createChatRequest(user.uid, toUserId);
+      await createChatRequest(user.id, toUserId);
       alert('Request sent');
     } catch (err) {
       console.error('Error sending request:', err);
@@ -114,13 +114,13 @@ export default function Dashboard(){
         </div>
         <ul className="mt-2">
           {results.map(r => (
-            <li key={r.uid} className="py-2 flex justify-between items-center border-b">
+            <li key={r.id} className="py-2 flex justify-between items-center border-b">
               <div>
                 <div className="font-medium">{r.name}</div>
                 <div className="text-sm text-gray-500">{r.userCode}</div>
               </div>
               <button 
-                onClick={() => sendRequest(r.uid)} 
+                onClick={() => sendRequest(r.id)} 
                 className="px-3 bg-green-500 text-white rounded hover:bg-green-600"
               >
                 Request Chat

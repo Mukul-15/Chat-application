@@ -1,48 +1,49 @@
-# Zentalk - Firebase Chat Application
+# Zentalk - Custom Authentication Chat Application
 
-A real-time private chat application built with React and Firebase. Features user authentication, private chat requests, and real-time messaging.
+A real-time private chat application built with React and Firebase. Features custom user authentication, private chat requests, and real-time messaging using Firestore.
 
 ## Tech Stack
 
 - **Frontend:** React 18 + TypeScript + Vite + Tailwind CSS
-- **Backend:** Firebase (Authentication, Firestore, Realtime Database)
-- **Authentication:** Firebase Auth
+- **Backend:** Firebase Firestore (No Firebase Auth)
+- **Authentication:** Custom credentials stored in Firestore
 - **Database:** Firestore for data storage
 - **Real-time:** Firestore real-time listeners
 
 ## Features
 
-- 🔐 Secure user authentication with Firebase Auth
+- 🔐 Custom user authentication with email/password
 - 👥 User search and private chat request system
 - 💬 Real-time messaging with Firestore
 - 📱 Responsive design with Tailwind CSS
 - 🔒 Private chat flow: search → send request → accept → create chat
 - ⚡ Fast development with Vite and hot reload
+- 🔒 Password hashing for security
 
 ## Firebase Collections
 
 ### Users Collection
-- `uid`: Firebase Auth UID
-- `email`: User email
+- `email`: User email (unique)
+- `password`: Hashed password
 - `name`: Display name
-- `userCode`: Unique user identifier
+- `userCode`: Unique user identifier (e.g., USER_ABC123)
 - `photoURL`: Profile picture URL
 - `createdAt`: Account creation timestamp
 - `lastSeen`: Last activity timestamp
 
 ### Chat Requests Collection
-- `fromUser`: Sender's UID
-- `toUser`: Recipient's UID
+- `fromUser`: Sender's user ID
+- `toUser`: Recipient's user ID
 - `status`: 'pending', 'accepted', or 'rejected'
 - `createdAt`: Request timestamp
 
 ### Chats Collection
-- `members`: Array of user UIDs
+- `members`: Array of user IDs
 - `createdAt`: Chat creation timestamp
 
 ### Messages Collection
 - `chatId`: Reference to chat document
-- `senderId`: Sender's UID
+- `senderId`: Sender's user ID
 - `text`: Message content
 - `timestamp`: Message timestamp
 - `isRead`: Read status
@@ -57,8 +58,8 @@ A real-time private chat application built with React and Firebase. Features use
 
 2. **Firebase Setup:**
    - The Firebase configuration is already set up in `src/firebase/config.js`
-   - Make sure your Firebase project has Authentication and Firestore enabled
-   - Enable Email/Password authentication in Firebase Console
+   - Make sure your Firebase project has Firestore enabled
+   - No Firebase Authentication needed - we use custom auth
 
 3. **Start development server:**
    ```bash
@@ -83,27 +84,33 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Chat requests
-    match /chatRequests/{requestId} {
-      allow read, write: if request.auth != null && 
-        (request.auth.uid == resource.data.fromUser || 
-         request.auth.uid == resource.data.toUser);
-    }
-    
-    // Chats
-    match /chats/{chatId} {
-      allow read, write: if request.auth != null && 
-        request.auth.uid in resource.data.members;
-    }
-    
-    // Messages
-    match /messages/{messageId} {
-      allow read, write: if request.auth != null && 
-        request.auth.uid in get(/databases/$(database)/documents/chats/$(resource.data.chatId)).data.members;
+    // Allow read/write for all users (since we're using custom auth)
+    // In production, implement proper authentication checks
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
 ```
+
+## Authentication Flow
+
+1. **Registration:**
+   - User provides name, email, password
+   - Password is hashed and stored in Firestore
+   - User data is saved to `users` collection
+   - User is automatically logged in
+
+2. **Login:**
+   - User provides email and password
+   - System searches for user by email in Firestore
+   - Password is verified against stored hash
+   - User data is loaded and stored in localStorage
+
+3. **Session Management:**
+   - User data is stored in localStorage
+   - App checks localStorage on startup
+   - Logout clears localStorage
 
 ## Project Structure
 
@@ -112,7 +119,7 @@ client/
 ├── src/
 │   ├── firebase/
 │   │   ├── config.js          # Firebase configuration
-│   │   ├── auth.js            # Authentication functions
+│   │   ├── auth.js            # Custom authentication functions
 │   │   └── firestore.js       # Firestore operations
 │   ├── context/
 │   │   └── AuthContext.tsx    # Authentication context
@@ -126,19 +133,30 @@ client/
 └── README.md
 ```
 
+## Security Notes
+
+- **Password Hashing:** Currently uses a simple hash function for demo purposes
+- **Production:** Use bcrypt or similar for proper password hashing
+- **Validation:** Add proper input validation and sanitization
+- **Rate Limiting:** Implement rate limiting for login attempts
+- **HTTPS:** Ensure all communication is over HTTPS in production
+
 ## Features Implemented
 
-- ✅ User registration and login
+- ✅ Custom user registration and login
+- ✅ Password hashing
 - ✅ User search functionality
 - ✅ Chat request system
 - ✅ Real-time messaging
 - ✅ Responsive UI
 - ✅ Error handling
 - ✅ Loading states
+- ✅ Session persistence
 
 ## Development Notes
 
 - All real-time functionality is handled by Firestore listeners
 - No backend server required - everything runs on Firebase
-- Authentication state is managed by Firebase Auth
+- Authentication is managed by custom logic with Firestore
 - Messages are stored in Firestore and synced in real-time
+- User sessions are managed via localStorage

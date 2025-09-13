@@ -7,8 +7,15 @@ import ChatRoom from './pages/ChatRoom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
-  const { token } = useAuth();
-  if(!token) return <Navigate to="/login" />;
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="text-lg">Loading...</div>
+    </div>;
+  }
+  
+  if (!user) return <Navigate to="/login" />;
   return children;
 }
 

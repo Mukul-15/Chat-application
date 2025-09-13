@@ -1,21 +1,26 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login(){
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const nav = useNavigate();
 
   const handle = async () => {
+    setLoading(true);
+    setError('');
+    
     try {
-      const res = await axios.post('/api/auth/login', { email, password });
-      login(res.data.token, res.data.user);
+      await login(email, password);
       nav('/');
-    } catch (err:any) {
-      alert(err.response?.data?.msg || 'Login failed');
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,8 +46,17 @@ export default function Login(){
             onChange={e=>setPassword(e.target.value)} 
           />
         </div>
-        <button onClick={handle} className="w-full bg-blue-600 text-white p-2 rounded">
-          Sign In
+        
+        {error && (
+          <div className="text-red-600 text-sm text-center mb-2">{error}</div>
+        )}
+        
+        <button 
+          onClick={handle} 
+          disabled={loading}
+          className="w-full bg-blue-600 text-white p-2 rounded disabled:opacity-50"
+        >
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
         <p className="mt-3 text-center">
           Don't have an account? <Link to="/register" className="text-blue-500">Create one</Link>

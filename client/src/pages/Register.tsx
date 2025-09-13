@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -7,16 +6,22 @@ export default function Register(){
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
   const nav = useNavigate();
 
   const handle = async () => {
+    setLoading(true);
+    setError('');
+    
     try {
-      const res = await axios.post('/api/auth/register', { name, email, password });
-      login(res.data.token, res.data.user);
+      await register(name, email, password);
       nav('/');
-    } catch(err:any) {
-      alert(err.response?.data?.msg || 'Registration failed');
+    } catch(err: any) {
+      setError(err.message || 'Registration failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,8 +55,17 @@ export default function Register(){
             onChange={e=>setPassword(e.target.value)} 
           />
         </div>
-        <button onClick={handle} className="w-full bg-green-600 text-white p-2 rounded">
-          Create Account
+        
+        {error && (
+          <div className="text-red-600 text-sm text-center mb-2">{error}</div>
+        )}
+        
+        <button 
+          onClick={handle} 
+          disabled={loading}
+          className="w-full bg-green-600 text-white p-2 rounded disabled:opacity-50"
+        >
+          {loading ? 'Creating Account...' : 'Create Account'}
         </button>
         <p className="mt-3 text-center">
           Already have an account? <Link to="/login" className="text-blue-500">Sign in</Link>
